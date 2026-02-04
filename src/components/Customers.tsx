@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { 
-  Plus, Mail, Phone, MapPin, Search, 
-  MessageCircle, Edit2, Trash2, Calendar, 
-  Check, X, ArrowUpRight 
+import {
+  Plus, Mail, Phone, MapPin, Search,
+  MessageCircle, Edit2, Trash2, Calendar,
+  Check, X
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -37,7 +37,7 @@ export default function Customers() {
   })
 
   const filteredCustomers = useMemo(() => {
-    return customers.filter(c => 
+    return customers.filter(c =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.phone?.includes(searchQuery)
@@ -126,8 +126,8 @@ export default function Customers() {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
-              placeholder="Search by name, email, or phone..." 
+            <Input
+              placeholder="Search by name, email, or phone..."
               className="pl-9 w-[300px]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -215,25 +215,24 @@ export default function Customers() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCustomers.map((customer) => (
-            <Card key={customer.id} className={`group relative hover:shadow-xl transition-all duration-300 border-l-4 ${
-              customer.status === 'Active' ? 'border-l-green-500' : 
-              customer.status === 'Pending' ? 'border-l-yellow-500' : 'border-l-gray-300'
-            }`}>
+            <Card key={customer.id} className={`group relative hover:shadow-xl transition-all duration-300 border-l-4 ${customer.status === 'Active' ? 'border-l-green-500' :
+                customer.status === 'Pending' ? 'border-l-yellow-500' : 'border-l-gray-300'
+              }`}>
               {editingId === customer.id ? (
                 <CardContent className="pt-6">
                   <form onSubmit={handleUpdate} className="space-y-4">
                     <div className="space-y-2">
                       <Label>Name</Label>
-                      <Input 
-                        value={editFormData?.name} 
-                        onChange={e => setEditFormData({...editFormData, name: e.target.value})}
+                      <Input
+                        value={editFormData?.name}
+                        onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Phone</Label>
-                      <Input 
-                        value={editFormData?.phone} 
-                        onChange={e => setEditFormData({...editFormData, phone: e.target.value})}
+                      <Input
+                        value={editFormData?.phone}
+                        onChange={e => setEditFormData({ ...editFormData, phone: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -249,8 +248,8 @@ export default function Customers() {
                       </select>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" type="submit"><Check className="h-4 w-4 mr-1"/> Save</Button>
-                      <Button size="sm" variant="ghost" type="button" onClick={() => setEditingId(null)}><X className="h-4 w-4 mr-1"/> Cancel</Button>
+                      <Button size="sm" type="submit"><Check className="h-4 w-4 mr-1" /> Save</Button>
+                      <Button size="sm" variant="ghost" type="button" onClick={() => setEditingId(null)}><X className="h-4 w-4 mr-1" /> Cancel</Button>
                     </div>
                   </form>
                 </CardContent>
@@ -259,23 +258,23 @@ export default function Customers() {
                   <form onSubmit={handleScheduleTask} className="space-y-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-sm">Schedule Follow-up</h3>
-                      <Button size="icon" variant="ghost" onClick={() => setSchedulingId(null)}><X className="h-4 w-4"/></Button>
+                      <Button size="icon" variant="ghost" onClick={() => setSchedulingId(null)}><X className="h-4 w-4" /></Button>
                     </div>
                     <div className="space-y-2">
                       <Label>Task / Meeting Title</Label>
-                      <Input 
+                      <Input
                         placeholder="e.g. Follow-up meeting"
-                        value={taskFormData.title} 
-                        onChange={e => setTaskFormData({...taskFormData, title: e.target.value})}
+                        value={taskFormData.title}
+                        onChange={e => setTaskFormData({ ...taskFormData, title: e.target.value })}
                         required
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Date</Label>
-                      <Input 
+                      <Input
                         type="date"
-                        value={taskFormData.due_date} 
-                        onChange={e => setTaskFormData({...taskFormData, due_date: e.target.value})}
+                        value={taskFormData.due_date}
+                        onChange={e => setTaskFormData({ ...taskFormData, due_date: e.target.value })}
                         required
                       />
                     </div>
@@ -289,18 +288,17 @@ export default function Customers() {
                       <div className="space-y-1">
                         <CardTitle className="text-xl font-bold">{customer.name}</CardTitle>
                         <div className="flex gap-2">
-                          <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full ${
-                            customer.status === 'Active' ? 'bg-green-100 text-green-700' :
-                            customer.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
-                          }`}>
+                          <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full ${customer.status === 'Active' ? 'bg-green-100 text-green-700' :
+                              customer.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
                             {customer.status}
                           </span>
                         </div>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => {
                             setEditingId(customer.id)
@@ -309,9 +307,9 @@ export default function Customers() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => handleDelete(customer.id, customer.name)}
                         >
@@ -328,9 +326,9 @@ export default function Customers() {
                             <Phone className="h-4 w-4 text-primary" />
                             {customer.phone}
                           </div>
-                          <Button 
-                            size="sm" 
-                            variant="secondary" 
+                          <Button
+                            size="sm"
+                            variant="outline"
                             className="h-8 bg-green-50 text-green-700 hover:bg-green-100 border-none px-2"
                             onClick={() => openWhatsApp(customer.phone)}
                           >
@@ -361,9 +359,9 @@ export default function Customers() {
                           <>No recent contact</>
                         )}
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         className="h-8 text-primary border-primary/20 hover:bg-primary/5 px-2"
                         onClick={() => setSchedulingId(customer.id)}
                       >

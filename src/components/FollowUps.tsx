@@ -1,5 +1,5 @@
 import { useCRM } from '@/contexts/CRMContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { MessageCircle, CheckCircle2, Clock, User, Phone, Calendar } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
