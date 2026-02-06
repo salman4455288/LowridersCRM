@@ -477,6 +477,9 @@ export default function Customers() {
                                 setEditingId(customer.id)
                                 setEditFormData(customer)
                               }}>Edit</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSchedulingId(customer.id)
+                              }}>Schedule Follow-up</DropdownMenuItem>
                               <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(customer.id, customer.name)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -616,7 +619,21 @@ export default function Customers() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Date</Label>
+                      <div className="flex items-center justify-between">
+                        <Label>Date</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-6 text-[10px] text-blue-600 hover:text-blue-700 p-0"
+                          onClick={() => {
+                            const tomorrow = new Date()
+                            tomorrow.setDate(tomorrow.getDate() + 1)
+                            setTaskFormData({ ...taskFormData, due_date: tomorrow.toISOString().split('T')[0] })
+                          }}
+                        >
+                          Tomorrow?
+                        </Button>
+                      </div>
                       <Input
                         type="date"
                         value={taskFormData.due_date}
