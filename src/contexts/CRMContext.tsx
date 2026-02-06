@@ -198,10 +198,11 @@ export function CRMProvider({ children }: { children: ReactNode }) {
       if (error) throw error
 
       setSales(sales.filter(s => s.id !== id))
+      await refreshData() // Force refresh to verify persistence
       toast.success('Sale deleted successfully')
     } catch (error: any) {
       console.error('Error deleting sale:', error)
-      toast.error('Failed to delete sale')
+      toast.error(`Deletion failed: ${error.message || 'Check permissions'}`)
       throw error
     }
   }
