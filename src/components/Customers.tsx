@@ -449,10 +449,10 @@ export default function Customers() {
                       <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                            {customer?.name.charAt(0)}
+                            {customer?.name?.[0] || '?'}
                           </div>
                           <div>
-                            <h4 className="font-bold text-gray-900">{customer?.name}</h4>
+                            <h4 className="font-bold text-gray-900">{customer?.name || 'Unknown Customer'}</h4>
                             <p className="text-sm text-gray-500">{task.title}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <MapPin className="h-3 w-3 text-gray-400" />
