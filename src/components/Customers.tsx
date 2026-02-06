@@ -440,8 +440,8 @@ export default function Customers() {
             <CardContent>
               <div className="space-y-4">
                 {useMemo(() => {
-                  const today = new Date().toISOString().split('T')[0]
-                  const todayTasks = tasks.filter((t: Task) => t.due_date === today && !t.completed)
+                  const today = new Date().toLocaleDateString('en-CA') // Reliable YYYY-MM-DD in local time
+                  const todayTasks = (tasks || []).filter((t: Task) => t.due_date === today && !t.completed)
                   if (todayTasks.length === 0) return <p className="text-center text-gray-500 py-8">No visits scheduled for today.</p>
                   return todayTasks.map((task: Task) => {
                     const customer = customers.find(c => c.id === task.customer_id)
