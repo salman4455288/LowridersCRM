@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useCRM } from '@/contexts/CRMContext'
+import { Task } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export default function Customers() {
-  const { customers, addCustomer, updateCustomer, deleteCustomer, addTask, loading } = useCRM()
+  const { customers, tasks, addCustomer, updateCustomer, deleteCustomer, addTask, updateTask, loading } = useCRM()
   const [showAddForm, setShowAddForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -410,9 +411,9 @@ export default function Customers() {
               <div className="space-y-4">
                 {useMemo(() => {
                   const today = new Date().toISOString().split('T')[0]
-                  const todayTasks = tasks.filter(t => t.due_date === today && !t.completed)
+                  const todayTasks = tasks.filter((t: Task) => t.due_date === today && !t.completed)
                   if (todayTasks.length === 0) return <p className="text-center text-gray-500 py-8">No visits scheduled for today.</p>
-                  return todayTasks.map(task => {
+                  return todayTasks.map((task: Task) => {
                     const customer = customers.find(c => c.id === task.customer_id)
                     return (
                       <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors">
