@@ -27,6 +27,8 @@ export default function Customers() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [schedulingId, setSchedulingId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'kanban' | 'dayplan'>('grid')
+  const [filterPlan, setFilterPlan] = useState<string>('All')
+  const [filterMaxPrice, setFilterMaxPrice] = useState<string>('')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -48,12 +50,19 @@ export default function Customers() {
   })
 
   const filteredCustomers = useMemo(() => {
-    return customers.filter(c =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.phone?.includes(searchQuery)
-    )
-  }, [customers, searchQuery])
+    return customers.filter(c => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.phone?.includes(searchQuery) ||
+        c.address?.toLowerCase().includes(searchQuery.toLowerCase())
+
+      const matchesPlan = filterPlan === 'All' || c.plan_type === filterPlan
+      const matchesPrice = !filterMaxPrice || (c.offered_amount || 0) <= Number(filterMaxPrice)
+
+      return matchesSearch && matchesPlan && matchesPrice
+    })
+  }, [customers, searchQuery, filterPlan, filterMaxPrice])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -257,10 +266,31 @@ export default function Customers() {
           <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search leads..."
-              className="pl-9 w-full sm:w-[200px]"
+              placeholder="Search name, phone, address..."
+              className="pl-9 w-full sm:w-[250px]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              className="h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              value={filterPlan}
+              onChange={(e) => setFilterPlan(e.target.value)}
+            >
+              <option value="All">All Categories</option>
+              <option value="Monthly">Monthly</option>
+              <option value="Yearly">Yearly</option>
+              <option value="Lifetime">Lifetime</option>
+            </select>
+
+            <Input
+              type="number"
+              placeholder="Max Price (Rs.)"
+              className="w-[130px]"
+              value={filterMaxPrice}
+              onChange={(e) => setFilterMaxPrice(e.target.value)}
             />
           </div>
 
