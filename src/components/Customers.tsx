@@ -7,10 +7,17 @@ import { Label } from '@/components/ui/label'
 import {
   Plus, Mail, Phone, MapPin, Search,
   MessageCircle, Edit2, Trash2, Calendar,
-  Check, X
+  Check, X, Download, Upload, FileSpreadsheet, Kanban, LayoutGrid, ChevronDown
 } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatPKPhoneNumber } from '@/lib/utils'
 import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export default function Customers() {
   const { customers, addCustomer, updateCustomer, deleteCustomer, addTask, loading } = useCRM()
@@ -18,6 +25,7 @@ export default function Customers() {
   const [searchQuery, setSearchQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [schedulingId, setSchedulingId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -47,7 +55,8 @@ export default function Customers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await addCustomer(formData)
+      const formattedPhone = formatPKPhoneNumber(formData.phone)
+      await addCustomer({ ...formData, phone: formattedPhone })
       setFormData({
         name: '',
         email: '',
@@ -64,11 +73,82 @@ export default function Customers() {
     }
   }
 
+  const exportToExcel = () => {
+    const data = customers.map(c => ({
+      Name: c.name,
+      Email: c.email || '',
+      Phone: c.phone || '',
+      Status: c.status,
+      Address: c.address || '',
+      'Last Interaction': c.last_interaction ? formatDate(c.last_interaction) : 'N/A'
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Customers')
+    XLSX.writeFile(wb, `CRM_Customers_${new Date().toISOString().split('T')[0]}.xlsx`)
+  }
+
+  const downloadTemplate = () => {
+    const template = [
+      {
+        Name: 'John Doe',
+        Email: 'john@example.com',
+        Phone: '03001234567',
+        Status: 'Active',
+        Address: '123 Street, City'
+      }
+    ]
+    const ws = XLSX.utils.json_to_sheet(template)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Template')
+    XLSX.writeFile(wb, 'Customer_Import_Template.xlsx')
+  }
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result
+        const wb = XLSX.read(bstr, { type: 'binary' })
+        const wsname = wb.SheetNames[0]
+        const ws = wb.Sheets[wsname]
+        const data = XLSX.utils.sheet_to_json(ws) as any[]
+
+        let successCount = 0
+        for (const row of data) {
+          if (row.Name) {
+            await addCustomer({
+              name: row.Name,
+              email: row.Email || '',
+              phone: formatPKPhoneNumber(String(row.Phone || '')),
+              status: row.Status || 'Active',
+              address: row.Address || '',
+              lat: 0,
+              lng: 0,
+              last_interaction: new Date().toISOString()
+            })
+            successCount++
+          }
+        }
+        toast.success(`Successfully imported ${successCount} customers`)
+      } catch (error) {
+        console.error('Import error:', error)
+        toast.error('Failed to import Excel file')
+      }
+    }
+    reader.readAsBinaryString(file)
+  }
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingId) return
     try {
-      await updateCustomer(editingId, editFormData)
+      const formattedPhone = formatPKPhoneNumber(editFormData.phone)
+      await updateCustomer(editingId, { ...editFormData, phone: formattedPhone })
       setEditingId(null)
       setEditFormData(null)
     } catch (error) {
@@ -111,10 +191,24 @@ export default function Customers() {
     }
   }
 
-  const openWhatsApp = (phone: string) => {
+  const whatsappTemplates = [
+    { name: 'Welcome', text: 'Hello! Welcome to our CRM. How can we help you today?' },
+    { name: 'Follow-up', text: 'Hi! Just following up on our last conversation. Any updates?' },
+    { name: 'Meeting', text: 'Hey! Are you available for a quick meeting tomorrow?' },
+    { name: 'Payment', text: 'Hi! This is a friendly reminder regarding the outstanding payment.' },
+  ]
+
+  const sendWhatsAppTemplate = (phone: string, templateText: string) => {
     const cleanPhone = phone.replace(/\D/g, '')
-    window.open(`https://wa.me/${cleanPhone}`, '_blank')
+    const encodedText = encodeURIComponent(templateText)
+    window.open(`https://wa.me/${cleanPhone}?text=${encodedText}`, '_blank')
   }
+
+  const kanbanColumns = [
+    { id: 'Pending', name: 'New Leads', color: 'bg-yellow-500' },
+    { id: 'Active', name: 'Contacted', color: 'bg-green-500' },
+    { id: 'Inactive', name: 'Not Interested', color: 'bg-gray-400' },
+  ]
 
   return (
     <div className="space-y-6">
@@ -124,15 +218,62 @@ export default function Customers() {
           <p className="text-gray-500 mt-1">Manage and follow up with your 100+ leads</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="flex bg-gray-100 p-1 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className={`px-2 ${viewMode === 'grid' ? 'bg-white shadow-sm' : ''}`}
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" /> Grid
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('kanban')}
+              className={`px-2 ${viewMode === 'kanban' ? 'bg-white shadow-sm' : ''}`}
+            >
+              <Kanban className="h-4 w-4 mr-2" /> Kanban
+            </Button>
+          </div>
+
           <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search leads..."
-              className="pl-9 w-full sm:w-[250px] md:w-[300px]"
+              className="pl-9 w-full sm:w-[200px]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="whitespace-nowrap">
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportToExcel}>
+                <Download className="h-4 w-4 mr-2" /> Export to Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => document.getElementById('excel-import')?.click()}>
+                <Upload className="h-4 w-4 mr-2" /> Import from Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={downloadTemplate}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Download Template
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <input
+            type="file"
+            id="excel-import"
+            className="hidden"
+            accept=".xlsx, .xls"
+            onChange={handleImportExcel}
+          />
+
           <Button onClick={() => setShowAddForm(!showAddForm)} className="whitespace-nowrap">
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
@@ -171,7 +312,7 @@ export default function Customers() {
                   <Input
                     id="phone"
                     value={formData.phone}
-                    placeholder="e.g. 923001234567"
+                    placeholder="e.g. 03001234567"
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
@@ -212,6 +353,82 @@ export default function Customers() {
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
+      ) : viewMode === 'kanban' ? (
+        <div className="flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
+          {kanbanColumns.map(column => (
+            <div key={column.id} className="flex-1 min-w-[300px] bg-gray-100/50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
+                  <h3 className="font-bold text-gray-700">{column.name}</h3>
+                  <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+                    {filteredCustomers.filter(c => c.status === column.id).length}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {filteredCustomers
+                  .filter(c => c.status === column.id)
+                  .map(customer => (
+                    <Card key={customer.id} className="shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-sm">{customer.name}</h4>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="icon" variant="ghost" className="h-6 w-6">
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => {
+                                setEditingId(customer.id)
+                                setEditFormData(customer)
+                              }}>Edit</DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(customer.id, customer.name)}>Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="space-y-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {customer.phone}
+                          </div>
+                          {customer.last_interaction && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" /> {formatDate(customer.last_interaction)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-3 flex gap-1">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[10px] w-full bg-green-50 text-green-700 border-green-100"
+                              >
+                                <MessageCircle className="h-3 w-3 mr-1" /> WhatsApp <ChevronDown className="ml-1 h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {whatsappTemplates.map((t) => (
+                                <DropdownMenuItem key={t.name} onClick={() => sendWhatsAppTemplate(customer.phone, t.text)}>
+                                  {t.name}
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuItem onClick={() => window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}`, '_blank')}>
+                                Open Direct Chat
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCustomers.map((customer) => (
@@ -232,6 +449,7 @@ export default function Customers() {
                       <Label>Phone</Label>
                       <Input
                         value={editFormData?.phone}
+                        placeholder="e.g. 03001234567"
                         onChange={e => setEditFormData({ ...editFormData, phone: e.target.value })}
                       />
                     </div>
@@ -326,15 +544,27 @@ export default function Customers() {
                             <Phone className="h-4 w-4 text-primary" />
                             {customer.phone}
                           </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 bg-green-50 text-green-700 hover:bg-green-100 border-none px-2"
-                            onClick={() => openWhatsApp(customer.phone)}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            WhatsApp
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 bg-green-50 text-green-700 hover:bg-green-100 border-none px-2"
+                              >
+                                <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp <ChevronDown className="ml-1 h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {whatsappTemplates.map((t) => (
+                                <DropdownMenuItem key={t.name} onClick={() => sendWhatsAppTemplate(customer.phone, t.text)}>
+                                  {t.name}
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuItem onClick={() => window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}`, '_blank')}>
+                                Open Direct Chat
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       )}
                       {customer.email && (
@@ -374,24 +604,23 @@ export default function Customers() {
               )}
             </Card>
           ))}
+          {filteredCustomers.length === 0 && !loading && (
+            <Card className="border-dashed col-span-full">
+              <CardContent className="flex flex-col items-center justify-center h-64">
+                <Search className="h-12 w-12 text-gray-200 mb-4" />
+                <p className="text-gray-500 mb-4">
+                  {searchQuery ? `No leads found matching "${searchQuery}"` : "No leads yet"}
+                </p>
+                {!searchQuery && (
+                  <Button onClick={() => setShowAddForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Lead
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
-      )}
-
-      {!loading && filteredCustomers.length === 0 && (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center h-64">
-            <Search className="h-12 w-12 text-gray-200 mb-4" />
-            <p className="text-gray-500 mb-4">
-              {searchQuery ? `No leads found matching "${searchQuery}"` : "No leads yet"}
-            </p>
-            {!searchQuery && (
-              <Button onClick={() => setShowAddForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Lead
-              </Button>
-            )}
-          </CardContent>
-        </Card>
       )}
     </div>
   )

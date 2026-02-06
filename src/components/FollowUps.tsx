@@ -1,9 +1,15 @@
 import { useCRM } from '@/contexts/CRMContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, CheckCircle2, Clock, User, Phone, Calendar } from 'lucide-react'
+import { MessageCircle, CheckCircle2, Clock, User, Phone, Calendar, ChevronDown } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export default function FollowUps() {
     const { tasks, customers, updateTask, loading } = useCRM()
@@ -23,14 +29,17 @@ export default function FollowUps() {
         }
     }
 
-    const openWhatsApp = (customerId: string) => {
-        const customer = customers.find(c => c.id === customerId)
-        if (!customer?.phone) {
-            toast.error('No phone number found for this customer')
-            return
-        }
-        const cleanPhone = customer.phone.replace(/\D/g, '')
-        window.open(`https://wa.me/${cleanPhone}`, '_blank')
+    const whatsappTemplates = [
+        { name: 'Welcome', text: 'Hello! Welcome to our CRM. How can we help you today?' },
+        { name: 'Follow-up', text: 'Hi! Just following up on our last conversation. Any updates?' },
+        { name: 'Meeting', text: 'Hey! Are you available for a quick meeting tomorrow?' },
+        { name: 'Payment', text: 'Hi! This is a friendly reminder regarding the outstanding payment.' },
+    ]
+
+    const sendWhatsAppTemplate = (phone: string, templateText: string) => {
+        const cleanPhone = phone.replace(/\D/g, '')
+        const encodedText = encodeURIComponent(templateText)
+        window.open(`https://wa.me/${cleanPhone}?text=${encodedText}`, '_blank')
     }
 
     if (loading) {
@@ -87,13 +96,33 @@ export default function FollowUps() {
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <Button
-                                            onClick={() => openWhatsApp(task.customer_id)}
-                                            className="bg-green-600 hover:bg-green-700 text-white flex-1 md:flex-none"
-                                        >
-                                            <MessageCircle className="h-4 w-4 mr-2" />
-                                            WhatsApp
-                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    disabled={!customer?.phone}
+                                                    className="bg-green-600 hover:bg-green-700 text-white flex-1 md:flex-none"
+                                                >
+                                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                                    WhatsApp <ChevronDown className="ml-1 h-3 w-3" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                {whatsappTemplates.map((t) => (
+                                                    <DropdownMenuItem
+                                                        key={t.name}
+                                                        onClick={() => customer?.phone && sendWhatsAppTemplate(customer.phone, t.text)}
+                                                    >
+                                                        {t.name}
+                                                    </DropdownMenuItem>
+                                                ))}
+                                                <DropdownMenuItem
+                                                    onClick={() => customer?.phone && window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}`, '_blank')}
+                                                >
+                                                    Open Direct Chat
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+
                                         <Button
                                             variant="outline"
                                             onClick={() => handleComplete(task.id)}

@@ -19,3 +19,21 @@ export function formatDate(date: string): string {
     day: 'numeric',
   })
 }
+
+export function formatPKPhoneNumber(phone: string): string {
+  if (!phone) return ''
+  // Remove all non-digits
+  let cleaned = phone.replace(/\D/g, '')
+
+  // If it starts with 0, remove it
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1)
+  }
+
+  // If it doesn't have 92 at the start, add it
+  if (!cleaned.startsWith('92')) {
+    cleaned = '92' + cleaned
+  }
+
+  return '+' + cleaned
+}

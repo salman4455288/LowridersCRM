@@ -1,7 +1,14 @@
+import { useMemo } from 'react'
 import { useCRM } from '@/contexts/CRMContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, DollarSign, CheckSquare, TrendingUp } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
+} from 'recharts'
+
+const COLORS = ['#3b82f6', '#eab308', '#94a3b8']
 
 export default function Dashboard() {
   const { customers, sales, tasks, activities, loading } = useCRM()
@@ -15,10 +22,40 @@ export default function Dashboard() {
     completedTasks: tasks.filter(t => t.completed).length,
   }
 
+  // Calculate sales by month (last 6 months)
+  const salesData = useMemo(() => {
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date()
+      d.setMonth(d.getMonth() - i)
+      return {
+        name: d.toLocaleString('default', { month: 'short' }),
+        total: 0,
+        monthNum: d.getMonth(),
+        year: d.getFullYear()
+      }
+    }).reverse()
+
+    sales.forEach(sale => {
+      const saleDate = new Date(sale.date)
+      const dataPoint = last6Months.find(m => m.monthNum === saleDate.getMonth() && m.year === saleDate.getFullYear())
+      if (dataPoint) {
+        dataPoint.total += sale.amount
+      }
+    })
+
+    return last6Months
+  }, [sales])
+
+  const pieData = [
+    { name: 'Contacted', value: customers.filter(c => c.status === 'Active').length },
+    { name: 'New Leads', value: customers.filter(c => c.status === 'Pending').length },
+    { name: 'Inactive', value: customers.filter(c => c.status === 'Inactive').length },
+  ]
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-gray-500">Loading...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
@@ -78,6 +115,66 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">+12%</div>
             <p className="text-xs text-gray-500 mt-1">vs last month</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle>Sales Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                    itemStyle={{ fontSize: '12px' }}
+                  />
+                  <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Lead Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((_entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex justify-center gap-4 mt-4">
+                {pieData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <span className="text-xs text-gray-500">{entry.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -156,3 +253,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
