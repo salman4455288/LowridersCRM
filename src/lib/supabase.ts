@@ -20,6 +20,8 @@ export interface Customer {
   lat: number
   lng: number
   status: 'Active' | 'Pending' | 'Inactive'
+  plan_type?: 'Monthly' | 'Yearly' | 'Lifetime'
+  offered_amount?: number
   last_interaction: string
   created_at: string
   updated_at: string

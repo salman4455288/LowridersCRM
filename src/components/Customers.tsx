@@ -25,7 +25,7 @@ export default function Customers() {
   const [searchQuery, setSearchQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [schedulingId, setSchedulingId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'kanban' | 'dayplan'>('grid')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -34,7 +34,9 @@ export default function Customers() {
     address: '',
     lat: 0,
     lng: 0,
-    status: 'Active' as const,
+    status: 'Pending' as const,
+    plan_type: 'Monthly' as const,
+    offered_amount: 2000,
     last_interaction: new Date().toISOString(),
   })
 
@@ -64,7 +66,9 @@ export default function Customers() {
         address: '',
         lat: 0,
         lng: 0,
-        status: 'Active',
+        status: 'Pending',
+        plan_type: 'Monthly',
+        offered_amount: 2000,
         last_interaction: new Date().toISOString(),
       })
       setShowAddForm(false)
@@ -95,8 +99,10 @@ export default function Customers() {
         Name: 'John Doe',
         Email: 'john@example.com',
         Phone: '03001234567',
-        Status: 'Active',
-        Address: '123 Street, City'
+        Status: 'Pending',
+        Address: '123 Street, City',
+        'Plan Type': 'Monthly',
+        'Offered Amount': 2000
       }
     ]
     const ws = XLSX.utils.json_to_sheet(template)
@@ -125,8 +131,10 @@ export default function Customers() {
               name: row.Name,
               email: row.Email || '',
               phone: formatPKPhoneNumber(String(row.Phone || '')),
-              status: row.Status || 'Active',
+              status: row.Status || 'Pending',
               address: row.Address || '',
+              plan_type: row['Plan Type'] || 'Monthly',
+              offered_amount: Number(row['Offered Amount']) || 2000,
               lat: 0,
               lng: 0,
               last_interaction: new Date().toISOString()
@@ -235,6 +243,14 @@ export default function Customers() {
             >
               <Kanban className="h-4 w-4 mr-2" /> Kanban
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('dayplan')}
+              className={`px-2 ${viewMode === 'dayplan' ? 'bg-white shadow-sm' : ''}`}
+            >
+              <Calendar className="h-4 w-4 mr-2" /> Today's Plan
+            </Button>
           </div>
 
           <div className="relative flex-1 sm:flex-none">
@@ -308,12 +324,40 @@ export default function Customers() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone (with country code)</Label>
+                  <Label htmlFor="phone">Phone (Pakistan)</Label>
+                  <div className="flex">
+                    <span className="flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                      +92
+                    </span>
+                    <Input
+                      id="phone"
+                      className="rounded-l-none"
+                      value={formData.phone.replace(/^(\+92|92|0)/, '')}
+                      placeholder="3001234567"
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="plan_type">Offer Plan</Label>
+                  <select
+                    id="plan_type"
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+                    value={formData.plan_type}
+                    onChange={(e) => setFormData({ ...formData, plan_type: e.target.value as any })}
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                    <option value="Lifetime">Lifetime</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="offered_amount">Offer Amount (Rs.)</Label>
                   <Input
-                    id="phone"
-                    value={formData.phone}
-                    placeholder="e.g. 03001234567"
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    id="offered_amount"
+                    type="number"
+                    value={formData.offered_amount}
+                    onChange={(e) => setFormData({ ...formData, offered_amount: Number(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -324,9 +368,9 @@ export default function Customers() {
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                   >
-                    <option value="Active">Active (Contacted)</option>
                     <option value="Pending">Pending (New Lead)</option>
-                    <option value="Inactive">Inactive (Not Interested)</option>
+                    <option value="Active">Active (Contacted)</option>
+                    <option value="Inactive">Not Interested</option>
                   </select>
                 </div>
               </div>
@@ -352,6 +396,54 @@ export default function Customers() {
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : viewMode === 'dayplan' ? (
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-500" />
+                Scheduled Visits & Tasks for Today
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {useMemo(() => {
+                  const today = new Date().toISOString().split('T')[0]
+                  const todayTasks = tasks.filter(t => t.due_date === today && !t.completed)
+                  if (todayTasks.length === 0) return <p className="text-center text-gray-500 py-8">No visits scheduled for today.</p>
+                  return todayTasks.map(task => {
+                    const customer = customers.find(c => c.id === task.customer_id)
+                    return (
+                      <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                            {customer?.name.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900">{customer?.name}</h4>
+                            <p className="text-sm text-gray-500">{task.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <MapPin className="h-3 w-3 text-gray-400" />
+                              <span className="text-xs text-gray-400">{customer?.address || 'No address provided'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="h-8 bg-green-50 text-green-700 border-none px-3" onClick={() => sendWhatsAppTemplate(customer?.phone || '', 'Hi, I am coming to visit you today.')}>
+                            <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+                          </Button>
+                          <Button size="sm" variant="outline" className="h-8 px-3" onClick={() => updateTask(task.id, { completed: true })}>
+                            <Check className="h-4 w-4 mr-1" /> Mark Visited
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })
+                }, [tasks, customers])}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       ) : viewMode === 'kanban' ? (
         <div className="flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
@@ -399,7 +491,7 @@ export default function Customers() {
                             </div>
                           )}
                         </div>
-                        <div className="mt-3 flex gap-1">
+                        <div className="mt-3 grid grid-cols-2 gap-1">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
@@ -421,6 +513,20 @@ export default function Customers() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-[10px] w-full bg-red-50 text-red-700 border-red-100"
+                            onClick={() => updateCustomer(customer.id, { status: 'Inactive' })}
+                          >
+                            <X className="h-3 w-3 mr-1" /> Not Interested
+                          </Button>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-dashed border-gray-200">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-gray-400">Offer: <span className="text-gray-900 font-medium">{customer.plan_type || 'Monthly'}</span></span>
+                            <span className="text-gray-900 font-bold">Rs. {customer.offered_amount || 2000}</span>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -460,10 +566,32 @@ export default function Customers() {
                         value={editFormData?.status}
                         onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as any })}
                       >
-                        <option value="Active">Active</option>
                         <option value="Pending">Pending</option>
-                        <option value="Inactive">Inactive</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Not Interested</option>
                       </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label>Offer Plan</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                          value={editFormData?.plan_type || 'Monthly'}
+                          onChange={(e) => setEditFormData({ ...editFormData, plan_type: e.target.value as any })}
+                        >
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                          <option value="Lifetime">Lifetime</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Amount (Rs.)</Label>
+                        <Input
+                          type="number"
+                          value={editFormData?.offered_amount || 2000}
+                          onChange={e => setEditFormData({ ...editFormData, offered_amount: Number(e.target.value) })}
+                        />
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" type="submit"><Check className="h-4 w-4 mr-1" /> Save</Button>
