@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 export default function Sales() {
-  const { sales, customers, profiles, addSale, loading } = useCRM()
+  const { sales, customers, profiles, addSale, deleteSale, loading } = useCRM()
   const [showAddForm, setShowAddForm] = useState(false)
   const [formData, setFormData] = useState({
     customer_id: '',
@@ -42,6 +42,16 @@ export default function Sales() {
       setShowAddForm(false)
     } catch (error) {
       console.error('Error adding sale:', error)
+    }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete the sale for ${name}?`)) {
+      try {
+        await deleteSale(id)
+      } catch (error) {
+        console.error('Error deleting sale:', error)
+      }
     }
   }
 
@@ -232,16 +242,26 @@ export default function Sales() {
                   <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
                     <p className="font-bold text-lg">{formatCurrency(sale.amount)}</p>
                     <p className="text-sm text-gray-500">{formatDate(sale.date)}</p>
-                    <span
-                      className={`inline-block mt-1 px-2 py-1 text-xs rounded-full ${sale.status === 'Completed'
-                        ? 'bg-green-100 text-green-800'
-                        : sale.status === 'In Progress'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                    >
-                      {sale.status}
-                    </span>
+                    <div className="flex items-center justify-start sm:justify-end gap-2 mt-2">
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${sale.status === 'Completed'
+                          ? 'bg-green-100 text-green-800'
+                          : sale.status === 'In Progress'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                      >
+                        {sale.status}
+                      </span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDelete(sale.id, sale.customer_name)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

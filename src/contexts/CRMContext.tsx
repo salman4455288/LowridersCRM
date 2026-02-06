@@ -16,6 +16,7 @@ interface CRMContextType {
   deleteCustomer: (id: string) => Promise<void>
   addSale: (sale: Omit<Sale, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>
   updateSale: (id: string, updates: Partial<Sale>) => Promise<void>
+  deleteSale: (id: string) => Promise<void>
   addTask: (task: Omit<Task, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>
   addInteraction: (customerId: string, interaction: Omit<Interaction, 'id' | 'user_id' | 'customer_id' | 'created_at'>) => Promise<void>
@@ -187,6 +188,24 @@ export function CRMProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const deleteSale = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      setSales(sales.filter(s => s.id !== id))
+      toast.success('Sale deleted successfully')
+    } catch (error: any) {
+      console.error('Error deleting sale:', error)
+      toast.error('Failed to delete sale')
+      throw error
+    }
+  }
+
   const addTask = async (taskData: Omit<Task, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     if (!user) return
 
@@ -345,6 +364,7 @@ export function CRMProvider({ children }: { children: ReactNode }) {
         deleteCustomer,
         addSale,
         updateSale,
+        deleteSale,
         addTask,
         updateTask,
         addInteraction,
