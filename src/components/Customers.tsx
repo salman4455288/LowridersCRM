@@ -118,22 +118,22 @@ export default function Customers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leads & Customers</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Leads & Customers</h1>
           <p className="text-gray-500 mt-1">Manage and follow up with your 100+ leads</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by name, email, or phone..."
-              className="pl-9 w-[300px]"
+              placeholder="Search leads..."
+              className="pl-9 w-full sm:w-[250px] md:w-[300px]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={() => setShowAddForm(!showAddForm)}>
+          <Button onClick={() => setShowAddForm(!showAddForm)} className="whitespace-nowrap">
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
           </Button>
@@ -216,7 +216,7 @@ export default function Customers() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCustomers.map((customer) => (
             <Card key={customer.id} className={`group relative hover:shadow-xl transition-all duration-300 border-l-4 ${customer.status === 'Active' ? 'border-l-green-500' :
-                customer.status === 'Pending' ? 'border-l-yellow-500' : 'border-l-gray-300'
+              customer.status === 'Pending' ? 'border-l-yellow-500' : 'border-l-gray-300'
               }`}>
               {editingId === customer.id ? (
                 <CardContent className="pt-6">
@@ -289,7 +289,7 @@ export default function Customers() {
                         <CardTitle className="text-xl font-bold">{customer.name}</CardTitle>
                         <div className="flex gap-2">
                           <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full ${customer.status === 'Active' ? 'bg-green-100 text-green-700' :
-                              customer.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                            customer.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
                             }`}>
                             {customer.status}
                           </span>

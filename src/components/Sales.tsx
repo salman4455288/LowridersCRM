@@ -51,12 +51,12 @@ export default function Sales() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sales</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Sales</h1>
           <p className="text-gray-500 mt-1">Track and manage your sales pipeline</p>
         </div>
-        <Button onClick={() => setShowAddForm(!showAddForm)}>
+        <Button onClick={() => setShowAddForm(!showAddForm)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Add Sale
         </Button>
@@ -207,12 +207,12 @@ export default function Sales() {
               {sales.map((sale) => (
                 <div
                   key={sale.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-4"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
                       <div>
-                        <p className="font-semibold">{sale.customer_name}</p>
+                        <p className="font-semibold text-base">{sale.customer_name}</p>
                         <p className="text-sm text-gray-500">{sale.description}</p>
                         {sale.contributors && sale.contributors.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
@@ -229,7 +229,7 @@ export default function Sales() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
                     <p className="font-bold text-lg">{formatCurrency(sale.amount)}</p>
                     <p className="text-sm text-gray-500">{formatDate(sale.date)}</p>
                     <span
