@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,7 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
-  const { signIn, signUp } = useAuth()
+  const { user, signIn, signUp } = useAuth()
+  const navigate = useNavigate()
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -14,6 +16,12 @@ export default function LoginPage() {
     email: '',
     password: '',
   })
+
+  useEffect(() => {
+    if (user) {
+      navigate('/')
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +33,7 @@ export default function LoginPage() {
       } else {
         await signIn(formData.email, formData.password)
       }
+      navigate('/')
     } catch (error) {
       console.error('Auth error:', error)
     } finally {
