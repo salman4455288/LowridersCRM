@@ -64,6 +64,11 @@ export default function Customers() {
     })
   }, [customers, searchQuery, filterPlan, filterMaxPrice])
 
+  const todayTasks = useMemo(() => {
+    const today = new Date().toLocaleDateString('en-CA')
+    return (tasks || []).filter((t: Task) => t.due_date === today && !t.completed)
+  }, [tasks])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -439,12 +444,11 @@ export default function Customers() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {useMemo(() => {
-                  const today = new Date().toLocaleDateString('en-CA') // Reliable YYYY-MM-DD in local time
-                  const todayTasks = (tasks || []).filter((t: Task) => t.due_date === today && !t.completed)
-                  if (todayTasks.length === 0) return <p className="text-center text-gray-500 py-8">No visits scheduled for today.</p>
-                  return todayTasks.map((task: Task) => {
-                    const customer = customers.find(c => c.id === task.customer_id)
+                {todayTasks.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No visits scheduled for today.</p>
+                ) : (
+                  todayTasks.map((task: Task) => {
+                    const customer = (customers || []).find(c => c.id === task.customer_id)
                     return (
                       <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors">
                         <div className="flex items-center gap-4">
@@ -471,7 +475,7 @@ export default function Customers() {
                       </div>
                     )
                   })
-                }, [tasks, customers])}
+                )}
               </div>
             </CardContent>
           </Card>
