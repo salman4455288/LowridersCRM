@@ -93,7 +93,7 @@ export default function CustomerDetails() {
                                 </div>
                             </div>
 
-                            <div className="mt-40 space-y-2">
+                            <div className="pt-20 space-y-2">
                                 <h3 className="font-bold text-2xl text-gray-900">{customer?.name}</h3>
                                 <div className="flex gap-2">
                                     <span className={`px-2 py-0.5 text-[10px] uppercase font-black tracking-widest rounded-full ${customer?.status === 'Active' ? 'bg-green-100 text-green-700' :
