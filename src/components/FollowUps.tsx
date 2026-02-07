@@ -12,15 +12,19 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export default function FollowUps() {
-    const { tasks, customers, updateTask, loading } = useCRM()
+    const { tasks, customers, updateTask, addNote, loading } = useCRM()
 
     // Filter for pending tasks and sort by due date
     const pendingFollowUps = tasks
         .filter(t => !t.completed)
         .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
 
-    const handleComplete = async (taskId: string) => {
+    const handleComplete = async (taskId: string, customerId: string) => {
+        const remark = window.prompt("Add a closing remark/note for this follow-up (optional):")
         try {
+            if (remark) {
+                await addNote(customerId, `[Follow-up Completed] ${remark}`)
+            }
             await updateTask(taskId, { completed: true })
             toast.success('Follow-up marked as completed')
         } catch (error) {
@@ -125,7 +129,7 @@ export default function FollowUps() {
 
                                         <Button
                                             variant="outline"
-                                            onClick={() => handleComplete(task.id)}
+                                            onClick={() => handleComplete(task.id, task.customer_id)}
                                             className="border-gray-200 hover:bg-gray-50 flex-1 md:flex-none"
                                         >
                                             <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />

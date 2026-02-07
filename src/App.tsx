@@ -8,6 +8,7 @@ import Customers from './components/Customers'
 import Sales from './components/Sales'
 import FollowUps from './components/FollowUps'
 import Layout from './components/Layout'
+import CustomerDetails from './components/CustomerDetails'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -45,6 +46,7 @@ function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="customers/:id" element={<CustomerDetails />} />
               <Route path="sales" element={<Sales />} />
               <Route path="followups" element={<FollowUps />} />
             </Route>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCRM } from '@/contexts/CRMContext'
 import { Task } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -21,7 +22,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export default function Customers() {
-  const { customers, tasks, addCustomer, updateCustomer, deleteCustomer, addTask, updateTask, loading } = useCRM()
+  const navigate = useNavigate()
+  const { customers, tasks, addCustomer, updateCustomer, deleteCustomer, addTask, updateTask, addNote, loading } = useCRM()
   const [showAddForm, setShowAddForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -468,7 +470,13 @@ export default function Customers() {
                           <Button size="sm" variant="outline" className="h-8 bg-green-50 text-green-700 border-none px-3" onClick={() => sendWhatsAppTemplate(customer?.phone || '', 'Hi, I am coming to visit you today.')}>
                             <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
                           </Button>
-                          <Button size="sm" variant="outline" className="h-8 px-3" onClick={() => updateTask(task.id, { completed: true })}>
+                          <Button size="sm" variant="outline" className="h-8 px-3" onClick={async () => {
+                            const remark = window.prompt("Add a visit note (optional):")
+                            if (remark && customer) {
+                              await addNote(customer.id, `[Visit Completed] ${remark}`)
+                            }
+                            await updateTask(task.id, { completed: true })
+                          }}>
                             <Check className="h-4 w-4 mr-1" /> Mark Visited
                           </Button>
                         </div>
@@ -497,7 +505,7 @@ export default function Customers() {
                 {filteredCustomers
                   .filter(c => c.status === column.id)
                   .map(customer => (
-                    <Card key={customer.id} className="shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={customer.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/customers/${customer.id}`)}>
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-bold text-sm">{customer.name}</h4>
@@ -576,9 +584,9 @@ export default function Customers() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCustomers.map((customer) => (
-            <Card key={customer.id} className={`group relative hover:shadow-xl transition-all duration-300 border-l-4 ${customer.status === 'Active' ? 'border-l-green-500' :
+            <Card key={customer.id} className={`group relative hover:shadow-xl transition-all duration-300 border-l-4 cursor-pointer ${customer.status === 'Active' ? 'border-l-green-500' :
               customer.status === 'Pending' ? 'border-l-yellow-500' : 'border-l-gray-300'
-              }`}>
+              }`} onClick={() => navigate(`/customers/${customer.id}`)}>
               {editingId === customer.id ? (
                 <CardContent className="pt-6">
                   <form onSubmit={handleUpdate} className="space-y-4">

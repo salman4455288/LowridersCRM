@@ -11,7 +11,7 @@ interface CRMContextType {
   profiles: { id: string, full_name: string | null, email: string | null }[]
   loading: boolean
   refreshData: () => Promise<void>
-  addCustomer: (customer: Omit<Customer, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>
+  addCustomer: (customer: Omit<Customer, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<Customer | null>
   updateCustomer: (id: string, updates: Partial<Customer>) => Promise<void>
   deleteCustomer: (id: string) => Promise<void>
   addSale: (sale: Omit<Sale, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>
@@ -74,8 +74,8 @@ export function CRMProvider({ children }: { children: ReactNode }) {
     refreshData()
   }, [user])
 
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Customer | null> => {
+    if (!user) return null
 
     try {
       const { data, error } = await supabase
@@ -97,6 +97,7 @@ export function CRMProvider({ children }: { children: ReactNode }) {
 
       await refreshData()
       toast.success('Customer added successfully')
+      return data
     } catch (error: any) {
       console.error('Error adding customer:', error)
       toast.error('Failed to add customer')
