@@ -587,7 +587,12 @@ export default function Customers() {
                     <Card key={customer.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/customers/${customer.id}`)}>
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-bold text-sm">{customer.name}</h4>
+                          <div>
+                            <h4 className="font-bold text-sm">{customer.name}</h4>
+                            {customer.shop_name && (
+                              <p className="text-xs text-blue-600 font-medium">{customer.shop_name}</p>
+                            )}
+                          </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
