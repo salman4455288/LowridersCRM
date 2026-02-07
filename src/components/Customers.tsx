@@ -649,7 +649,7 @@ export default function Customers() {
               customer.status === 'Pending' ? 'border-l-yellow-500' : 'border-l-gray-300'
               }`} onClick={() => navigate(`/customers/${customer.id}`)}>
               {editingId === customer.id ? (
-                <CardContent className="pt-6">
+                <CardContent className="pt-6" onClick={(e) => e.stopPropagation()}>
                   <form onSubmit={handleUpdate} className="space-y-4">
                     <div className="space-y-2">
                       <Label>Name</Label>
@@ -707,7 +707,7 @@ export default function Customers() {
                   </form>
                 </CardContent>
               ) : schedulingId === customer.id ? (
-                <CardContent className="pt-6">
+                <CardContent className="pt-6" onClick={(e) => e.stopPropagation()}>
                   <form onSubmit={handleScheduleTask} className="space-y-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-sm">Schedule Follow-up</h3>
