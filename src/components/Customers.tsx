@@ -273,10 +273,10 @@ export default function Customers() {
   }
 
   const whatsappTemplates = [
-    { name: 'Welcome', text: 'Hello! Welcome to our CRM. How can we help you today?' },
-    { name: 'Follow-up', text: 'Hi! Just following up on our last conversation. Any updates?' },
-    { name: 'Meeting', text: 'Hey! Are you available for a quick meeting tomorrow?' },
-    { name: 'Payment', text: 'Hi! This is a friendly reminder regarding the outstanding payment.' },
+    { name: 'Welcome', text: 'Salam! Lowriders CRM mein khushamdeed. Aj hum apke liye kya kar saktay hain?' },
+    { name: 'Follow-up', text: 'Salam! Bas apki last baat cheet k hawale se follow up lena tha. Koi update?' },
+    { name: 'Meeting', text: 'Salam! Kya kal hum meeting rakh saktay hain?' },
+    { name: 'Payment', text: 'Salam! Apki payment pending hai, kindly clear kar dein.' },
   ]
 
   const sendWhatsAppTemplate = (phone: string, templateText: string) => {
@@ -572,7 +572,7 @@ export default function Customers() {
                           <h4 className="font-bold text-sm">{customer.name}</h4>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="h-6 w-6">
+                              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
                                 <Edit2 className="h-3 w-3" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -767,7 +767,8 @@ export default function Customers() {
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation()
                             setEditingId(customer.id)
                             setEditFormData(customer)
                           }}
@@ -778,7 +779,10 @@ export default function Customers() {
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDelete(customer.id, customer.name)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(customer.id, customer.name)
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -799,6 +803,7 @@ export default function Customers() {
                                 size="sm"
                                 variant="outline"
                                 className="h-8 bg-green-50 text-green-700 hover:bg-green-100 border-none px-2"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp <ChevronDown className="ml-1 h-3 w-3" />
                               </Button>
@@ -842,7 +847,10 @@ export default function Customers() {
                         size="sm"
                         variant="outline"
                         className="h-8 text-primary border-primary/20 hover:bg-primary/5 px-2"
-                        onClick={() => setSchedulingId(customer.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSchedulingId(customer.id)
+                        }}
                       >
                         <Calendar className="h-4 w-4 mr-1" />
                         Schedule
