@@ -93,11 +93,11 @@ export default function CustomerDetails() {
                                 </div>
                             </div>
 
-                            <div className="mt-16 space-y-1">
+                            <div className="mt-24 space-y-1">
                                 <h3 className="font-bold text-2xl text-gray-900">{customer?.name}</h3>
                                 <div className="flex gap-2">
                                     <span className={`px-2 py-0.5 text-[10px] uppercase font-black tracking-widest rounded-full ${customer?.status === 'Active' ? 'bg-green-100 text-green-700' :
-                                            customer?.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                                        customer?.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
                                         }`}>
                                         {customer?.status}
                                     </span>
@@ -199,8 +199,8 @@ export default function CustomerDetails() {
                                 .map((event, index) => (
                                     <div key={event.id} className="relative pl-12 group animate-in fade-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${index * 100}ms` }}>
                                         <div className={`absolute left-0 top-0 mt-1.5 flex h-10 w-10 items-center justify-center rounded-xl border-4 border-white ${event.eventType === 'note' ? 'bg-blue-500' :
-                                                event.type === 'call' ? 'bg-green-500' :
-                                                    event.type === 'meeting' ? 'bg-purple-500' : 'bg-orange-500'
+                                            event.type === 'call' ? 'bg-green-500' :
+                                                event.type === 'meeting' ? 'bg-purple-500' : 'bg-orange-500'
                                             } text-white shadow-md ring-1 ring-gray-100 transition-all group-hover:scale-110 group-hover:rotate-6`}>
                                             {event.eventType === 'note' ? <MessageSquare className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
                                         </div>
@@ -209,8 +209,8 @@ export default function CustomerDetails() {
                                                 <div className="p-4">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${event.eventType === 'note' ? 'bg-blue-50 text-blue-700' :
-                                                                event.type === 'call' ? 'bg-green-50 text-green-700' :
-                                                                    event.type === 'meeting' ? 'bg-purple-50 text-purple-700' : 'bg-orange-50 text-orange-700'
+                                                            event.type === 'call' ? 'bg-green-50 text-green-700' :
+                                                                event.type === 'meeting' ? 'bg-purple-50 text-purple-700' : 'bg-orange-50 text-orange-700'
                                                             }`}>
                                                             {event.eventType === 'note' ? 'Internal Remark' : event.type}
                                                         </span>

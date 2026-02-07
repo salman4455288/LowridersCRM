@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCRM } from '@/contexts/CRMContext'
 import { Task } from '@/lib/supabase'
@@ -71,11 +71,25 @@ export default function Customers() {
     return (tasks || []).filter((t: Task) => t.due_date === today && !t.completed)
   }, [tasks])
 
+  const nameRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const planRef = useRef<HTMLSelectElement>(null)
+  const amountRef = useRef<HTMLInputElement>(null)
+  const statusRef = useRef<HTMLSelectElement>(null)
+  const addressRef = useRef<HTMLInputElement>(null)
+
+  const handleKeyDown = (e: React.KeyboardEvent, nextRef: React.RefObject<HTMLElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      nextRef.current?.focus()
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       const formattedPhone = formatPKPhoneNumber(formData.phone)
-      await addCustomer({ ...formData, phone: formattedPhone })
+      await addCustomer({ ...formData, email: '', phone: formattedPhone })
       setFormData({
         name: '',
         email: '',
@@ -91,6 +105,7 @@ export default function Customers() {
       setShowAddForm(false)
     } catch (error) {
       console.error('Error adding customer:', error)
+      toast.error("Failed to add customer. Please check your inputs.")
     }
   }
 
@@ -335,6 +350,8 @@ export default function Customers() {
         </div>
       </div>
 
+
+
       {showAddForm && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
@@ -346,21 +363,15 @@ export default function Customers() {
                 <div className="space-y-2">
                   <Label htmlFor="name">Name *</Label>
                   <Input
+                    ref={nameRef}
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onKeyDown={(e) => handleKeyDown(e, phoneRef)}
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </div>
+                {/* Email field removed */}
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone (Pakistan)</Label>
                   <div className="flex">
@@ -368,21 +379,25 @@ export default function Customers() {
                       +92
                     </span>
                     <Input
+                      ref={phoneRef}
                       id="phone"
                       className="rounded-l-none"
                       value={formData.phone.replace(/^(\+92|92|0)/, '')}
                       placeholder="3001234567"
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onKeyDown={(e) => handleKeyDown(e, planRef)}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="plan_type">Offer Plan</Label>
                   <select
+                    ref={planRef}
                     id="plan_type"
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
                     value={formData.plan_type}
                     onChange={(e) => setFormData({ ...formData, plan_type: e.target.value as any })}
+                    onKeyDown={(e) => handleKeyDown(e, amountRef)}
                   >
                     <option value="Monthly">Monthly</option>
                     <option value="Yearly">Yearly</option>
@@ -392,19 +407,23 @@ export default function Customers() {
                 <div className="space-y-2">
                   <Label htmlFor="offered_amount">Offer Amount (Rs.)</Label>
                   <Input
+                    ref={amountRef}
                     id="offered_amount"
                     type="number"
                     value={formData.offered_amount}
                     onChange={(e) => setFormData({ ...formData, offered_amount: Number(e.target.value) })}
+                    onKeyDown={(e) => handleKeyDown(e, statusRef)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <select
+                    ref={statusRef}
                     id="status"
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onKeyDown={(e) => handleKeyDown(e, addressRef)}
                   >
                     <option value="Pending">Pending (New Lead)</option>
                     <option value="Active">Active (Contacted)</option>
@@ -415,6 +434,7 @@ export default function Customers() {
               <div className="space-y-2">
                 <Label htmlFor="address">Address / Notes</Label>
                 <Input
+                  ref={addressRef}
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}

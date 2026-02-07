@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { useCRM } from '@/contexts/CRMContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, CheckCircle2, Clock, User, Phone, Calendar, ChevronDown } from 'lucide-react'
+import { MessageCircle, CheckCircle2, Clock, User, Phone, Calendar, ChevronDown, X } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
@@ -13,20 +14,33 @@ import {
 
 export default function FollowUps() {
     const { tasks, customers, updateTask, addNote, loading } = useCRM()
+    const [showRemarkModal, setShowRemarkModal] = useState(false)
+    const [selectedTask, setSelectedTask] = useState<{ id: string, customerId: string } | null>(null)
+    const [remark, setRemark] = useState('')
 
     // Filter for pending tasks and sort by due date
     const pendingFollowUps = tasks
         .filter(t => !t.completed)
         .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
 
-    const handleComplete = async (taskId: string, customerId: string) => {
-        const remark = window.prompt("Add a closing remark/note for this follow-up (optional):")
+    const handleInitialComplete = (taskId: string, customerId: string) => {
+        setSelectedTask({ id: taskId, customerId })
+        setRemark('')
+        setShowRemarkModal(true)
+    }
+
+    const confirmComplete = async () => {
+        if (!selectedTask) return
+
         try {
-            if (remark) {
-                await addNote(customerId, `[Follow-up Completed] ${remark}`)
+            if (remark.trim()) {
+                await addNote(selectedTask.customerId, `[Follow-up Completed] ${remark}`)
             }
-            await updateTask(taskId, { completed: true })
+            await updateTask(selectedTask.id, { completed: true })
             toast.success('Follow-up marked as completed')
+            setShowRemarkModal(false)
+            setSelectedTask(null)
+            setRemark('')
         } catch (error) {
             console.error('Error completing task:', error)
             toast.error('Failed to update task')
@@ -55,7 +69,39 @@ export default function FollowUps() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {showRemarkModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <Card className="w-full max-w-md bg-white shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+                            <h3 className="font-semibold text-lg">Complete Follow-up</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setShowRemarkModal(false)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <CardContent className="p-4 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Add a closing remark (optional)</label>
+                                <textarea
+                                    className="flex w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px]"
+                                    placeholder="e.g. Customer is interested, will visit next week..."
+                                    value={remark}
+                                    onChange={(e) => setRemark(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button variant="outline" onClick={() => setShowRemarkModal(false)}>Cancel</Button>
+                                <Button onClick={confirmComplete} className="bg-green-600 hover:bg-green-700 text-white">
+                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                    Complete Task
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
             <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Pending Follow-ups</h1>
                 <p className="text-gray-500 mt-1">Don't let your leads go cold. Reach out today.</p>
@@ -129,7 +175,7 @@ export default function FollowUps() {
 
                                         <Button
                                             variant="outline"
-                                            onClick={() => handleComplete(task.id, task.customer_id)}
+                                            onClick={() => handleInitialComplete(task.id, task.customer_id)}
                                             className="border-gray-200 hover:bg-gray-50 flex-1 md:flex-none"
                                         >
                                             <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
