@@ -20,10 +20,18 @@ CREATE TABLE IF NOT EXISTS customers (
   lat DECIMAL(10, 8),
   lng DECIMAL(11, 8),
   status TEXT DEFAULT 'Active' CHECK (status IN ('Active', 'Pending', 'Inactive')),
+  plan_type TEXT CHECK (plan_type IN ('Monthly', 'Yearly', 'Lifetime')),
+  offered_amount DECIMAL(10, 2),
   last_interaction TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- =====================================================
+-- ALERT: If you are upgrading, run these commands:
+-- ALTER TABLE customers ADD COLUMN IF NOT EXISTS plan_type TEXT CHECK (plan_type IN ('Monthly', 'Yearly', 'Lifetime'));
+-- ALTER TABLE customers ADD COLUMN IF NOT EXISTS offered_amount DECIMAL(10, 2);
+-- =====================================================
 
 -- Enable Row Level Security
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;

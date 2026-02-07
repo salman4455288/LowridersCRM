@@ -96,8 +96,8 @@ export default function Customers() {
       await addCustomer({
         ...submissionData,
         phone: formattedPhone,
-        // Explicitly set email to null if it's empty or undefined, to avoid empty string errors
-        email: email || null
+        // Send empty string if email is missing, as DB might have NOT NULL constraint
+        email: email || ''
       })
 
       setFormData({
@@ -113,9 +113,9 @@ export default function Customers() {
         last_interaction: new Date().toISOString(),
       })
       setShowAddForm(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding customer:', error)
-      toast.error("Failed to add customer. Please check your inputs.")
+      toast.error(`Failed to add customer: ${error.message || 'Check your inputs'}`)
     }
   }
 
