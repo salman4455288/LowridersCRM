@@ -100,7 +100,41 @@ export function CRMProvider({ children }: { children: ReactNode }) {
       return data
     } catch (error: any) {
       console.error('Error adding customer:', error)
-      toast.error('Failed to add customer')
+
+      // Check for missing column error (Postgres code 42703 or message text)
+      if (error.code === '42703' || error.message?.includes('column') || error.message?.includes('does not exist')) {
+        try {
+          toast.info("Attempting fallback insert (schema might be outdated)...")
+          // Create a fallback object with only core fields that definitely exist
+          // We cast to any to avoid strict type checking for this fallback attempt
+          const coreData: any = {
+            name: customerData.name,
+            phone: customerData.phone,
+            address: customerData.address,
+            status: customerData.status,
+            email: customerData.email, // Include email, it's usually standard
+            user_id: user.id
+          }
+
+          const { data: retryData, error: retryError } = await supabase
+            .from('customers')
+            .insert([coreData])
+            .select()
+            .single()
+
+          if (retryError) throw retryError
+
+          setCustomers([retryData, ...customers])
+          await refreshData()
+          toast.warning('Customer added, but extended fields (plan/amount) were not saved. Please update your database schema.')
+          return retryData
+        } catch (retryErr: any) {
+          console.error('Fallback failed:', retryErr)
+          toast.error(`Failed to add customer: ${retryErr.message} (Hint: Check database schema)`)
+        }
+      } else {
+        toast.error(`Failed to add customer: ${error.message} (Code: ${error.code})`)
+      }
       throw error
     }
   }
