@@ -14,7 +14,7 @@ export interface Customer {
   id: string
   user_id: string
   name: string
-  email: string
+  email?: string | null
   phone: string
   address: string
   lat: number

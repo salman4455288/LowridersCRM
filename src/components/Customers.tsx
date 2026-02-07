@@ -89,7 +89,17 @@ export default function Customers() {
     e.preventDefault()
     try {
       const formattedPhone = formatPKPhoneNumber(formData.phone)
-      await addCustomer({ ...formData, email: '', phone: formattedPhone })
+
+      // Create a submission object without the email property
+      const { email, ...submissionData } = formData
+
+      await addCustomer({
+        ...submissionData,
+        phone: formattedPhone,
+        // Explicitly set email to null if it's empty or undefined, to avoid empty string errors
+        email: email || null
+      })
+
       setFormData({
         name: '',
         email: '',
