@@ -39,6 +39,7 @@ export default function Customers() {
     address: '',
     lat: 0,
     lng: 0,
+    shop_name: '',
     status: 'Pending' as const,
     plan_type: 'Monthly' as const,
     offered_amount: 2000,
@@ -55,6 +56,7 @@ export default function Customers() {
     return customers.filter(c => {
       const matchesSearch =
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.shop_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.phone?.includes(searchQuery) ||
         c.address?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -102,6 +104,7 @@ export default function Customers() {
 
       setFormData({
         name: '',
+        shop_name: '',
         email: '',
         phone: '',
         address: '',
@@ -122,6 +125,7 @@ export default function Customers() {
   const exportToExcel = () => {
     const data = customers.map(c => ({
       Name: c.name,
+      'Shop Name': c.shop_name || '',
       Email: c.email || '',
       Phone: c.phone || '',
       Status: c.status,
@@ -141,6 +145,7 @@ export default function Customers() {
     const template = [
       {
         Name: 'John Doe',
+        'Shop Name': 'Bismillah Store',
         Email: 'john@example.com',
         Phone: '03001234567',
         Status: 'Pending',
@@ -412,6 +417,15 @@ export default function Customers() {
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shop_name">Shop Name</Label>
+                  <Input
+                    id="shop_name"
+                    value={formData.shop_name}
+                    onChange={(e) => setFormData({ ...formData, shop_name: e.target.value })}
+                    placeholder="e.g. Bismillah General Store"
+                  />
+                </div>
                 {/* Email field removed */}
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone (Pakistan)</Label>
@@ -520,6 +534,7 @@ export default function Customers() {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-900">{customer?.name || 'Unknown Customer'}</h4>
+                            {customer?.shop_name && <p className="text-xs text-blue-600 font-medium">{customer.shop_name}</p>}
                             <p className="text-sm text-gray-500">{task.title}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <MapPin className="h-3 w-3 text-gray-400" />
@@ -659,6 +674,14 @@ export default function Customers() {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label>Shop Name</Label>
+                      <Input
+                        value={editFormData?.shop_name || ''}
+                        onChange={e => setEditFormData({ ...editFormData, shop_name: e.target.value })}
+                        placeholder="Shop Name"
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <Label>Phone</Label>
                       <Input
                         value={editFormData?.phone}
@@ -761,32 +784,35 @@ export default function Customers() {
                             {customer.status}
                           </span>
                         </div>
+                        {customer.shop_name && (
+                          <div className="text-xs text-gray-500 font-medium">{customer.shop_name}</div>
+                        )}
                       </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setEditingId(customer.id)
-                            setEditFormData(customer)
-                          }}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDelete(customer.id, customer.name)
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditingId(customer.id)
+                          setEditFormData(customer)
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(customer.id, customer.name)
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

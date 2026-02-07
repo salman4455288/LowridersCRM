@@ -95,6 +95,9 @@ export default function CustomerDetails() {
 
                             <div className="pt-20 space-y-2">
                                 <h3 className="font-bold text-2xl text-gray-900">{customer?.name}</h3>
+                                {customer?.shop_name && (
+                                    <h4 className="text-lg text-gray-600 font-medium -mt-1">{customer?.shop_name}</h4>
+                                )}
                                 <div className="flex gap-2">
                                     <span className={`px-2 py-0.5 text-[10px] uppercase font-black tracking-widest rounded-full ${customer?.status === 'Active' ? 'bg-green-100 text-green-700' :
                                         customer?.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'

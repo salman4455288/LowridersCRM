@@ -27,6 +27,7 @@ CREATE TABLE customers (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   email TEXT, -- Can be NULL
+  shop_name TEXT,
   phone TEXT,
   address TEXT,
   lat DECIMAL(10, 8),
