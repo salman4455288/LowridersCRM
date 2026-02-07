@@ -126,6 +126,8 @@ export default function Customers() {
       Phone: c.phone || '',
       Status: c.status,
       Address: c.address || '',
+      'Plan Type': c.plan_type || 'Monthly',
+      'Offered Amount': c.offered_amount || 0,
       'Last Interaction': c.last_interaction ? formatDate(c.last_interaction) : 'N/A'
     }))
 
@@ -166,28 +168,57 @@ export default function Customers() {
         const ws = wb.Sheets[wsname]
         const data = XLSX.utils.sheet_to_json(ws) as any[]
 
+        if (data.length === 0) {
+          toast.error("The Excel file seems empty.")
+          return
+        }
+
         let successCount = 0
+        let failureCount = 0
+
+        toast.info(`Starting import of ${data.length} records...`)
+
         for (const row of data) {
-          if (row.Name) {
-            await addCustomer({
-              name: row.Name,
-              email: row.Email || '',
-              phone: formatPKPhoneNumber(String(row.Phone || '')),
-              status: row.Status || 'Pending',
-              address: row.Address || '',
-              plan_type: row['Plan Type'] || 'Monthly',
-              offered_amount: Number(row['Offered Amount']) || 2000,
-              lat: 0,
-              lng: 0,
-              last_interaction: new Date().toISOString()
-            })
-            successCount++
+          try {
+            if (row.Name) {
+              // Ensure Plan Type matches allowed values or default
+              let planType = row['Plan Type'] || 'Monthly';
+              if (!['Monthly', 'Yearly', 'Lifetime'].includes(planType)) {
+                planType = 'Monthly';
+              }
+
+              await addCustomer({
+                name: row.Name,
+                email: row.Email || '',
+                phone: formatPKPhoneNumber(String(row.Phone || '')),
+                status: row.Status || 'Pending',
+                address: row.Address || '',
+                plan_type: planType as any,
+                offered_amount: Number(row['Offered Amount']) || 2000,
+                lat: 0,
+                lng: 0,
+                last_interaction: new Date().toISOString()
+              })
+              successCount++
+            }
+          } catch (rowError) {
+            console.error(`Failed to import row: ${JSON.stringify(row)}`, rowError)
+            failureCount++
           }
         }
-        toast.success(`Successfully imported ${successCount} customers`)
+
+        if (failureCount > 0) {
+          toast.warning(`Import completed: ${successCount} added, ${failureCount} failed. Check console for details.`)
+        } else {
+          toast.success(`Successfully imported all ${successCount} customers!`)
+        }
+
+        // Reset the input value so the same file can be selected again if needed
+        e.target.value = ''
+
       } catch (error) {
         console.error('Import error:', error)
-        toast.error('Failed to import Excel file')
+        toast.error('Failed to parse Excel file. Is it valid?')
       }
     }
     reader.readAsBinaryString(file)
