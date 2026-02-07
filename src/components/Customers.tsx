@@ -74,6 +74,7 @@ export default function Customers() {
   }, [tasks])
 
   const nameRef = useRef<HTMLInputElement>(null)
+  const shopNameRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
   const planRef = useRef<HTMLSelectElement>(null)
   const amountRef = useRef<HTMLInputElement>(null)
@@ -413,17 +414,19 @@ export default function Customers() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    onKeyDown={(e) => handleKeyDown(e, phoneRef)}
+                    onKeyDown={(e) => handleKeyDown(e, shopNameRef)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="shop_name">Shop Name</Label>
                   <Input
+                    ref={shopNameRef}
                     id="shop_name"
                     value={formData.shop_name}
                     onChange={(e) => setFormData({ ...formData, shop_name: e.target.value })}
                     placeholder="e.g. Bismillah General Store"
+                    onKeyDown={(e) => handleKeyDown(e, phoneRef)}
                   />
                 </div>
                 {/* Email field removed */}
